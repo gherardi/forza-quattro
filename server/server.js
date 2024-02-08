@@ -17,24 +17,20 @@ const COLONNE = 7;
 const matrice = Array.from({ length: RIGHE }, () => Array(COLONNE).fill(null));
 
 const giocatori = ['rosso', 'giallo'];
-// const giocatoreCorrente = giocatori[0];
-
-io.use((socket, next) => {
-	CONNESSIONI++;
-	if (CONNESSIONI <= 2) {
-		next();
-	} else {
-		CONNESSIONI--;
-		socket.emit('limite-connessioni');
-		socket.disconnect(true);
-	}
-});
 
 io.on('connection', (socket) => {
+	CONNESSIONI++;
+	if (CONNESSIONI > 2) {
+		// CONNESSIONI--;
+		socket.emit('limite-connessioni');
+		socket.disconnect();
+		CONNESSIONI--;
+		return;
+	}
 	const coloreGiocatore = giocatori.shift();
 
 	socket.on('disconnect', () => {
-		if(coloreGiocatore === 'rosso') giocatori.unshift(coloreGiocatore);
+		if (coloreGiocatore === 'rosso') giocatori.unshift(coloreGiocatore);
 		else giocatori.push(coloreGiocatore);
 		CONNESSIONI--;
 	});
