@@ -28,11 +28,11 @@ io.on('connection', (socket) => {
 		CONNESSIONI--;
 		return;
 	}
-	console.log("client connesso:" + socket.id);
+	console.log('client connesso:' + socket.id);
 	const coloreGiocatore = giocatori.shift();
 
 	socket.on('disconnect', () => {
-		console.log("client disconnesso:" + socket.id);
+		console.log('client disconnesso:' + socket.id);
 		if (coloreGiocatore === 'rosso') giocatori.unshift(coloreGiocatore);
 		else giocatori.push(coloreGiocatore);
 		CONNESSIONI--;
@@ -40,31 +40,102 @@ io.on('connection', (socket) => {
 
 	socket.emit('info-giocatore', socket.id, coloreGiocatore, matrice);
 
-	socket.emit("aggiorna-matrice", matrice);
+	socket.emit('aggiorna-matrice', matrice);
+
+	io.emit('aggiorna-turno', giocatoreMossaCorrente);
 
 	socket.on('mossa', (colore, colonna) => {
 		// check se è il turno del giocatore
 		if (colore !== giocatoreMossaCorrente) return;
-
 		// cambia il giocatore corrente
 		giocatoreMossaCorrente = giocatoreMossaCorrente === 'rosso' ? 'giallo' : 'rosso';
 
+		io.emit('aggiorna-turno', giocatoreMossaCorrente);
+
 		for (let i = 6 - 1; i >= 0; i--) {
 			if (!matrice[i][colonna]) {
-				// Colora la cella e aggiorna lo stato
 				matrice[i][colonna] = colore;
-
-				// todo: Verifica la vittoria dopo ogni mossa (usando la funzione controllaVittoria)
-				// if (controllaVittoria(statoCelle, giocatoreCorrente)) {
-				// alert(`Il giocatore ${giocatoreCorrente.toUpperCase()} ha vinto!`);
-				// Puoi implementare altre azioni dopo la vittoria, come ricominciare il gioco, ecc.
-				// }
 				break;
 			}
 		}
 
-		io.emit("aggiorna-matrice", matrice);
+		io.emit('aggiorna-matrice', matrice);
+
+		if (controllaVittoria(matrice, colore)) {
+			io.emit('vittoria', colore);
+			io.emit("nuova-partita");
+		} else if (matrice.every((riga) => riga.every((cella) => !!cella))) {
+			io.emit('pareggio');
+			io.emit("nuova-partita");
+		}
+	});
+
+
+	socket.on('nuova-partita', () => {
+		matrice.forEach((riga, i) => {
+			matrice[i] = Array(COLONNE).fill(null);
+		});
+		io.emit('aggiorna-matrice', matrice);
+		io.emit('aggiorna-turno', giocatoreMossaCorrente);
 	});
 });
 
-// ad ogni mossa, controlla se c'è un vincitore, controllare se è piena la matrice, controllare se un giocatore si è disconnesso
+function controllaVittoria(matrice, giocatore) {
+	// Controllo vittoria orizzontale
+	for (let riga = 0; riga < 6; riga++) {
+		for (let colonna = 0; colonna < 4; colonna++) {
+			if (
+				matrice[riga][colonna] === giocatore &&
+				matrice[riga][colonna + 1] === giocatore &&
+				matrice[riga][colonna + 2] === giocatore &&
+				matrice[riga][colonna + 3] === giocatore
+			) {
+				return true; // Vittoria orizzontale
+			}
+		}
+	}
+
+	// Controllo vittoria verticale
+	for (let riga = 0; riga < 3; riga++) {
+		for (let colonna = 0; colonna < 7; colonna++) {
+			if (
+				matrice[riga][colonna] === giocatore &&
+				matrice[riga + 1][colonna] === giocatore &&
+				matrice[riga + 2][colonna] === giocatore &&
+				matrice[riga + 3][colonna] === giocatore
+			) {
+				return true; // Vittoria verticale
+			}
+		}
+	}
+
+	// Controllo vittoria diagonale (da sinistra in basso a destra in alto)
+	for (let riga = 0; riga < 3; riga++) {
+		for (let colonna = 0; colonna < 4; colonna++) {
+			if (
+				matrice[riga][colonna] === giocatore &&
+				matrice[riga + 1][colonna + 1] === giocatore &&
+				matrice[riga + 2][colonna + 2] === giocatore &&
+				matrice[riga + 3][colonna + 3] === giocatore
+			) {
+				return true; // Vittoria diagonale
+			}
+		}
+	}
+
+	// Controllo vittoria diagonale (da sinistra in alto a destra in basso)
+	for (let riga = 3; riga < 6; riga++) {
+		for (let colonna = 0; colonna < 4; colonna++) {
+			if (
+				matrice[riga][colonna] === giocatore &&
+				matrice[riga - 1][colonna + 1] === giocatore &&
+				matrice[riga - 2][colonna + 2] === giocatore &&
+				matrice[riga - 3][colonna + 3] === giocatore
+			) {
+				return true; // Vittoria diagonale
+			}
+		}
+	}
+
+	return false; // Nessuna vittoria
+}

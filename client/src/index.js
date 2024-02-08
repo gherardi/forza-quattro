@@ -1,126 +1,102 @@
-const griglia = document.querySelector(".griglia");
-const bottoneContainer = document.querySelector(".bottone-container");
+import { io } from 'socket.io-client';
 
-const colonne = 7;
-const righe = 6;
-let giocatoreCorrente = "rosso"; // Puoi usare 'giallo' per il secondo giocatore
+const socket = io('http://localhost:3000');
 
-// Inizializza la matrice per tenere traccia dello stato delle celle
-const statoCelle = Array.from({ length: righe }, () =>
-  Array(colonne).fill(null)
-);
+let coloreGiocatore = null;
+let BLOCCO = false;
 
-// Crea la griglia del gioco
-creaGriglia();
+socket.on('limite-connessioni', () => {
+	document.body.innerHTML = '';
+	document.body.innerHTML = `
+	<div class="bg-black/50 font-medium flex items-center gap-2 border-b-red-600 border-b-2 py-4 px-6 rounded-lg text-lg">
+		<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="w-8 h-8">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+		</svg>
+		Limite giocatori raggiunto
+	</div>
+	`;
+});
 
-// Crea i bottoni per far cadere le palline
-for (let j = 0; j < colonne; j++) {
-  const bottone = document.createElement("button");
-  bottone.classList.add("bottone");
-  bottone.innerHTML = "&darr;";
-  bottone.addEventListener("click", function () {
-    dropPallina(j);
-  });
-  bottoneContainer.appendChild(bottone);
-}
+socket.on('info-giocatore', (socketId, colore, matrice) => {
+	coloreGiocatore = colore;
+	disegnaInfo();
+	addEventListeners();
+});
 
-// Funzione per far cadere la pallina nella colonna selezionata
-function dropPallina(colonna) {
-  // Trova la prima cella vuota nella colonna
-  for (let i = righe - 1; i >= 0; i--) {
-    if (!statoCelle[i][colonna]) {
-      // Colora la cella e aggiorna lo stato
-      statoCelle[i][colonna] = giocatoreCorrente;
-      const cella = griglia.querySelector(
-        `.cella[data-colonna="${colonna}"][data-riga="${i}"]`
-      );
-      cella.classList.add(giocatoreCorrente);
-      cella.style.backgroundColor = giocatoreCorrente;
+const disegnaInfo = function () {
+	const classe = coloreGiocatore === 'rosso' ? 'border-l-red-600' : 'border-l-yellow-400';
+	const html = `
+		<div class="absolute top-2 left-2 bg-black/50 font-medium ${classe} border-l-4 py-4 px-6 rounded-lg">
+			Sei il giocatore ${coloreGiocatore}
+		</div>
+	`;
+	document.body.insertAdjacentHTML('beforeend', html);
+};
 
-      // Verifica la vittoria dopo ogni mossa (usando la funzione controllaVittoria)
-      if (controllaVittoria(statoCelle, giocatoreCorrente)) {
-        alert(`Il giocatore ${giocatoreCorrente.toUpperCase()} ha vinto!`);
-        // Puoi implementare altre azioni dopo la vittoria, come ricominciare il gioco, ecc.
-      }
+const disegnaGriglia = function (matrice) {
+	const griglia = document.querySelector('[data-griglia]');
+	griglia.innerHTML = '';
 
-      // Cambia il giocatore corrente
-      giocatoreCorrente = giocatoreCorrente === "rosso" ? "giallo" : "rosso";
-      break;
-    }
-  }
-}
+	matrice.forEach((riga, i) => {
+		riga.forEach((cella, j) => {
+			const html = `
+				<div
+					class="aspect-square rounded-full
+					${cella === 'rosso' ? 'bg-red-600' : cella === 'giallo' ? 'bg-yellow-400' : 'bg-white'}
+					"
+					data-riga="${i}"
+					data-colonna="${j}"
+					data-cella
+				</div>
+			`;
+			griglia.insertAdjacentHTML('beforeend', html);
+		});
+	});
+};
 
-// Funzione per controllare la vittoria
-// Funzione per controllare la vittoria
-function controllaVittoria(matrice, giocatore) {
-  // Controllo vittoria orizzontale
-  for (let riga = 0; riga < 6; riga++) {
-    for (let colonna = 0; colonna < 4; colonna++) {
-      if (
-        matrice[riga][colonna] === giocatore &&
-        matrice[riga][colonna + 1] === giocatore &&
-        matrice[riga][colonna + 2] === giocatore &&
-        matrice[riga][colonna + 3] === giocatore
-      ) {
-        return true; // Vittoria orizzontale
-      }
-    }
-  }
+const addEventListeners = function () {
+	const drops = document.querySelectorAll('[data-drop]');
+	drops?.forEach((drop, index) => {
+		drop.addEventListener('click', function () {
+			if (BLOCCO) return;
+			socket.emit('mossa', coloreGiocatore, index);
+		});
+	});
+};
 
-  // Controllo vittoria verticale
-  for (let riga = 0; riga < 3; riga++) {
-    for (let colonna = 0; colonna < 7; colonna++) {
-      if (
-        matrice[riga][colonna] === giocatore &&
-        matrice[riga + 1][colonna] === giocatore &&
-        matrice[riga + 2][colonna] === giocatore &&
-        matrice[riga + 3][colonna] === giocatore
-      ) {
-        return true; // Vittoria verticale
-      }
-    }
-  }
+socket.on('aggiorna-matrice', (matrice) => {
+	disegnaGriglia(matrice);
+});
 
-  // Controllo vittoria diagonale (da sinistra in basso a destra in alto)
-  for (let riga = 0; riga < 3; riga++) {
-    for (let colonna = 0; colonna < 4; colonna++) {
-      if (
-        matrice[riga][colonna] === giocatore &&
-        matrice[riga + 1][colonna + 1] === giocatore &&
-        matrice[riga + 2][colonna + 2] === giocatore &&
-        matrice[riga + 3][colonna + 3] === giocatore
-      ) {
-        return true; // Vittoria diagonale
-      }
-    }
-  }
+socket.on('aggiorna-turno', (colore) => {
+	const turno = document.querySelector('[data-turno]');
+	if (colore === coloreGiocatore) {
+		turno.textContent = '🟩 È il tuo turno!';
+	} else {
+		turno.textContent = '🟥 È il tuo del tuo avversario!';
+	}
+});
 
-  // Controllo vittoria diagonale (da sinistra in alto a destra in basso)
-  for (let riga = 3; riga < 6; riga++) {
-    for (let colonna = 0; colonna < 4; colonna++) {
-      if (
-        matrice[riga][colonna] === giocatore &&
-        matrice[riga - 1][colonna + 1] === giocatore &&
-        matrice[riga - 2][colonna + 2] === giocatore &&
-        matrice[riga - 3][colonna + 3] === giocatore
-      ) {
-        return true; // Vittoria diagonale
-      }
-    }
-  }
+socket.on('vittoria', (colore) => {
+	BLOCCO = true;
+	if (colore === coloreGiocatore) {
+		alert('Hai vinto!');
+	} else {
+		alert('Hai perso!');
+	}
+});
 
-  return false; // Nessuna vittoria
-}
+socket.on('pareggio', () => {
+	BLOCCO = true;
+	alert('Pareggio!');
+});
 
-// Funzione per creare la griglia del gioco
-function creaGriglia() {
-  for (let i = 0; i < righe; i++) {
-    for (let j = 0; j < colonne; j++) {
-      const cella = document.createElement("div");
-      cella.classList.add("cella");
-      cella.setAttribute("data-colonna", j);
-      cella.setAttribute("data-riga", i); // Aggiunta dell'attributo data-riga
-      griglia.appendChild(cella);
-    }
-  }
-}
+socket.on('nuova-partita', () => {
+	setTimeout(() => {
+		const res = prompt('vuoi giocare ancora?');
+		if (res.toLowerCase() === 'si' || res.toLowerCase() === 'yes') {
+			socket.emit('nuova-partita');
+			BLOCCO = false;
+		}
+	}, 5000);
+});
