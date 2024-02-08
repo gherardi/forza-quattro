@@ -5,10 +5,12 @@ const socket = io('http://localhost:3000');
 let coloreGiocatore = null;
 
 socket.on('limite-connessioni', () => {
-	console.log('limite raggiunto');
 	document.body.innerHTML = '';
 	document.body.innerHTML = `
-	<div class="bg-black/50 font-medium border-b-red-600 border-b-2 py-4 px-6 rounded-lg">
+	<div class="bg-black/50 font-medium flex items-center gap-2 border-b-red-600 border-b-2 py-4 px-6 rounded-lg text-lg">
+		<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="w-8 h-8">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+		</svg>
 		Limite giocatori raggiunto
 	</div>
 	`;
@@ -17,7 +19,7 @@ socket.on('limite-connessioni', () => {
 socket.on('info-giocatore', (socketId, colore, matrice) => {
 	coloreGiocatore = colore;
 	disegnaInfo();
-	disegnaGriglia(matrice);
+	addEventListeners();
 });
 
 const disegnaInfo = function () {
@@ -33,6 +35,7 @@ const disegnaInfo = function () {
 const disegnaGriglia = function (matrice) {
 	const griglia = document.querySelector('[data-griglia]');
 	griglia.innerHTML = '';
+
 	matrice.forEach((riga, i) => {
 		riga.forEach((cella, j) => {
 			const html = `
@@ -49,3 +52,16 @@ const disegnaGriglia = function (matrice) {
 		});
 	});
 };
+
+const addEventListeners = function () {
+	const drops = document.querySelectorAll('[data-drop]');
+	drops?.forEach((drop, index) => {
+		drop.addEventListener('click', function () {
+			socket.emit('mossa', coloreGiocatore, index);
+		});
+	});
+};
+
+socket.on('aggiorna-matrice', (matrice) => {
+	disegnaGriglia(matrice);
+});

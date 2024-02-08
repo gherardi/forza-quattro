@@ -48,7 +48,6 @@ function dropPallina(colonna) {
       break;
     }
   }
-  console.log(statoCelle);
 }
 
 // Funzione per controllare la vittoria
@@ -125,5 +124,3 @@ function creaGriglia() {
     }
   }
 }
-
-
