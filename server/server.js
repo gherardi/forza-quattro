@@ -1,39 +1,45 @@
 import { Server } from 'socket.io';
 
+console.clear();
+
 const io = new Server(3000, {
 	cors: {
 		origin: ['http://localhost:5173'],
 	},
 });
 
-let playerNumber = 0;
+let CONNESSIONI = 0;
 
-io.on('connection', (socket) => {
-  // check numero massimo di connessioni
-	if (playerNumber > 1) {
-		io.emit('exeed-players');
-		socket.disconnect();
-		return;
+// VARIABILI
+const RIGHE = 6;
+const COLONNE = 7;
+
+const matrice = Array.from({ length: RIGHE }, () => Array(COLONNE).fill(null));
+
+const giocatori = ['rosso', 'giallo'];
+// const giocatoreCorrente = giocatori[0];
+
+io.use((socket, next) => {
+	CONNESSIONI++;
+	if (CONNESSIONI <= 2) {
+		next();
+	} else {
+		CONNESSIONI--;
+		socket.emit('limite-connessioni');
+		socket.disconnect(true);
 	}
-
-	// console.log('Client connesso: ' + socket.id);
-
-	socket.on('send-message', (msg) => {
-		socket.broadcast.emit('receive-message', msg);
-	});
-
-	socket.on('disconnect', () => {
-		playerNumber--;
-		// console.log('Client disconnesso: ' + socket.id);
-	});
-
-	io.emit('player-info', playerNumber, socket.id);
-
-	playerNumber++;
 });
 
-// function creaMatriceVuota() {
-// 	return Array.from({ length: RIGHE }, () => Array(COLONNE).fill(null));
-// }
+io.on('connection', (socket) => {
+	const coloreGiocatore = giocatori.shift();
 
-console.clear();
+	socket.on('disconnect', () => {
+		if(coloreGiocatore === 'rosso') giocatori.unshift(coloreGiocatore);
+		else giocatori.push(coloreGiocatore);
+		CONNESSIONI--;
+	});
+
+	socket.emit('info-giocatore', socket.id, coloreGiocatore, matrice);
+});
+
+// ad ogni mossa, controlla se c'è un vincitore, controllare se è piena la matrice, controllare se un giocatore si è disconnesso
