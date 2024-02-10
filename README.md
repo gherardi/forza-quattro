@@ -3,6 +3,9 @@
 
 Il progetto è la rappresentazione del famoso gioco da tavolo Forza 4.
 
+## Diagrammd di sequenza
+https://app.eraser.io/workspace/SSBLiamigsZkwaUtYuhm?origin=share
+
 ## Tech Stack
 
 **Client:** HTML, Javascript,  TailwindCSS, Vite
