@@ -1,4 +1,5 @@
-import { RIGHE, COLONNE } from './constants.js';
+const RIGHE = 6;
+const COLONNE = 7;
 
 export const controllaVittoria = function (matrice, giocatore) {
   // Controllo vittoria orizzontale

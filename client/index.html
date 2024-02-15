@@ -10,111 +10,38 @@
 		<script defer type="module" src="./src/index.js"></script>
 	</head>
 	<body class="flex flex-col items-center justify-center px-4 h-svh">
-		<div data-app class="flex flex-col items-center justify-center hidden w-full">
-			<p data-turno class="mb-4"></p>
+		<p data-turno class="absolute hidden px-4 py-2 rounded top-3 left-3 bg-white/35">
+			🟩 È il tuo turno!
+		</p>
+
+		<!-- APPLICAZIONE -->
+		<div data-app class="flex-col items-center justify-center hidden w-full">
 			<div
 				data-drop-container
 				class="grid gap-1 sm:gap-2 lg:gap-2 w-full sm:w-3/5 lg:w-2/5 grid-cols-7 p-3 sm:p-4 lg:p-6 [&>*]:flex [&>*]:justify-center [&>*]:rounded-md [&>*]:bg-white/10 [&>*]:py-2 [&>*]:cursor-pointer [&>*]:transition"
-			>
-				<div data-drop class="hover:bg-white/25">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke-width="1.5"
-						stroke="currentColor"
-						class="w-6 h-6"
-					>
-						<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-					</svg>
-				</div>
-				<div data-drop class="hover:bg-white/25">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke-width="1.5"
-						stroke="currentColor"
-						class="w-6 h-6"
-					>
-						<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-					</svg>
-				</div>
-				<div data-drop class="hover:bg-white/25">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke-width="1.5"
-						stroke="currentColor"
-						class="w-6 h-6"
-					>
-						<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-					</svg>
-				</div>
-				<div data-drop class="hover:bg-white/25">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke-width="1.5"
-						stroke="currentColor"
-						class="w-6 h-6"
-					>
-						<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-					</svg>
-				</div>
-				<div data-drop class="hover:bg-white/25">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke-width="1.5"
-						stroke="currentColor"
-						class="w-6 h-6"
-					>
-						<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-					</svg>
-				</div>
-				<div data-drop class="hover:bg-white/25">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke-width="1.5"
-						stroke="currentColor"
-						class="w-6 h-6"
-					>
-						<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-					</svg>
-				</div>
-				<div data-drop class="hover:bg-white/25">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke-width="1.5"
-						stroke="currentColor"
-						class="w-6 h-6"
-					>
-						<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-					</svg>
-				</div>
-			</div>
+			></div>
 			<div
 				data-griglia
 				class="grid w-full grid-cols-7 gap-1 p-3 pb-10 bg-blue-700 rounded-b-none sm:w-3/5 sm:gap-2 sm:p-4 sm:pb-12 lg:w-2/5 lg:gap-2 lg:p-6 lg:pb-14 rounded-3xl"
 			></div>
 		</div>
+
+		<!-- LOADER -->
 		<div data-loader class="flex flex-col items-center gap-5">
 			<l-ring size="40" stroke="5" bg-opacity="0" speed="2" color="white"></l-ring>
 			In attesa di un avversario...
 		</div>
-		<div data-limite-connessioni class="items-center hidden gap-2 px-6 py-4 font-medium border-b-2 rounded-lg bg-black/50 border-b-red-600">
-			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="white" class="w-8 h-8">
-				<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-			</svg>
-			Limite giocatori raggiunto
+
+		<!-- FINE GIOCO -->
+		<div data-fine-schermata class="hidden text-center">
+			<h1 class="mb-2 text-4xl font-black">END GAME</h1>
+			<p data-esito class="mb-6 text-lg">Lorem, ipsum.</p>
+			<button
+				onclick="location.reload()"
+				class="px-6 py-2 font-medium transition bg-blue-700 rounded-md hover:-translate-y-1"
+			>
+				Gioca di nuovo
+			</button>
 		</div>
 	</body>
 </html>
