@@ -2,7 +2,9 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "start": "nodemon server.js"
+    "start": "nodemon server.js",
+    "dev": "nodemon server.js",
+    "build": "node server.js"
   },
   "dependencies": {
     "nodemon": "^3.0.3",
